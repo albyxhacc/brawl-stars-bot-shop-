@@ -2,10 +2,9 @@ import json
 import os
 
 class ShopBot:
-    def __init__(self, filename="config.json", min_version="v19", max_version="v29", file_directory="./"):
+    def __init__(self, filename="config.json", target_version="v29", file_directory="./"):
         self.filename = filename
-        self.min_version = min_version
-        self.max_version = max_version
+        self.target_version = target_version
         self.file_directory = file_directory
         self.filepath = os.path.join(self.file_directory, self.filename)
         self.offers = {}
@@ -51,13 +50,26 @@ class ShopBot:
             input_id = list(map(int, input_id.split(",")))
         return input_id + [0] * (target_length - len(input_id))
 
-    def add_offer(self):
-        print(f"The bot works with game versions from {self.min_version} to {self.max_version}.")
-        version = input("Enter game version (e.g. v19, v29): ")
-        if not self.validate_version(version):
-            print(f"Invalid version! The bot only works with versions between {self.min_version} and {self.max_version}.")
-            return
+    def validate_brawler_ids(self, brawler_ids):
+        try:
+            ids = list(map(int, brawler_ids.split(",")))
+            for id in ids:
+                if id < 1 or id > 39:
+                    raise ValueError
+            return ids
+        except ValueError:
+            return None
 
+    def get_valid_brawler_ids(self):
+        while True:
+            brawler_id_input = input("Enter BrawlerID (valid IDs: 1-39, separate multiple IDs with commas): ")
+            brawler_ids = self.validate_brawler_ids(brawler_id_input)
+            if brawler_ids is not None:
+                return brawler_ids
+            print("Invalid BrawlerID(s)! Please enter IDs between 1 and 39.")
+
+    def add_offer(self):
+        print(f"The bot works exclusively with game version {self.target_version}.")
         offer_id = input("Enter offer ID (e.g. 1): ")
         offer_title = input("Enter offer title: ")
         cost = int(input("Enter cost: "))
@@ -65,7 +77,7 @@ class ShopBot:
         count = int(input("Enter quantity: "))
         bgr = input("Enter BGR: ")
         multiplier = int(input("Enter multiplier (e.g. 1, 2): "))
-        brawler_id = input("Enter BrawlerID (e.g. 1 or 1,2): ")
+        brawler_id = self.get_valid_brawler_ids()
         skin_id = input("Enter SkinID (e.g. 1 or 1,2): ")
 
         offer_id = self.extend_to_full_id(offer_id)
@@ -92,19 +104,15 @@ class ShopBot:
         self.save_offers()
         print(f"Offer has been added: {offer_data}")
 
-    def validate_version(self, version):
-        try:
-            version_num = int(version[1:])
-            min_version_num = int(self.min_version[1:])
-            max_version_num = int(self.max_version[1:])
-            return min_version_num <= version_num <= max_version_num
-        except (ValueError, IndexError):
-            return False
-
     def start(self):
         use_config = input("Does your server use config.json as the shop? (y/n): ").lower()
         if use_config != "y":
             print("Bot will now close since your server doesn't use config.json.")
+            return
+
+        version = input("Enter game version (e.g. v29): ")
+        if version != self.target_version:
+            print(f"Error: This bot works only with version {self.target_version}. Exiting...")
             return
 
         while True:
