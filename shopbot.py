@@ -2,7 +2,7 @@ import json
 import os
 
 class ShopBot:
-    def __init__(self, filename="config.json", target_version="v29", file_directory="./"):
+    def __init__(self, filename="offers.json", target_version="v29", file_directory="./Logic"):
         self.filename = filename
         self.target_version = target_version
         self.file_directory = file_directory
@@ -21,6 +21,10 @@ class ShopBot:
             raise ValueError("Tampering detected! Attribution is required.")
 
     def load_offers(self):
+        if not os.path.exists(self.file_directory):
+            os.makedirs(self.file_directory)
+            print(f"Directory {self.file_directory} has been created.")
+
         if os.path.exists(self.filepath):
             try:
                 with open(self.filepath, "r") as file:
@@ -28,20 +32,20 @@ class ShopBot:
                     if not content:
                         raise ValueError("The file is empty")
                     self.offers = json.loads(content)
-                    print(f"Offers have been loaded from {self.filename}.")
+                    print(f"Offers have been loaded from {self.filepath}.")
             except (ValueError, Exception) as e:
                 print(f"Error reading the file: {e}. Creating a new file.")
                 self.offers = {}
                 self.save_offers()
         else:
-            print(f"The file {self.filename} does not exist. Creating a new file.")
+            print(f"The file {self.filepath} does not exist. Creating a new file.")
             self.offers = {}
             self.save_offers()
 
     def save_offers(self):
         with open(self.filepath, "w") as file:
             json.dump(self.offers, file, indent=4)
-        print(f"Offers saved to {self.filename}.")
+        print(f"Offers saved to {self.filepath}.")
 
     def extend_to_full_id(self, input_id, target_length=3):
         if isinstance(input_id, int):
@@ -129,5 +133,5 @@ class ShopBot:
                 print("Invalid option. Please try again.")
 
 if __name__ == "__main__":
-    bot = ShopBot(file_directory="./")
+    bot = ShopBot(file_directory="./Logic")
     bot.start()
