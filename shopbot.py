@@ -82,7 +82,90 @@ class ShopBot:
         bgr = input("Enter BGR: ")
         multiplier = int(input("Enter multiplier (e.g. 1, 2): "))
         brawler_id = self.get_valid_brawler_ids()
-        skin_id = input("Enter SkinID (e.g. 1 or 1,2): ")
+import json
+import os
+
+class ShopBot:
+    def __init__(self, filename="offers.json", target_version="v29", file_directory="./Logic"):
+        self.filename = filename
+        self.target_version = target_version
+        self.file_directory = file_directory
+        self.filepath = os.path.join(self.file_directory, self.filename)
+        self.offers = {}
+        self.display_attribution()
+        self.load_offers()
+
+    def display_attribution(self):
+        attribution = "Bot made by @albyxhacc on tg"
+        border = "-" * len(attribution)
+        print(border)
+        print(attribution)
+        print(border)
+        if "Bot made by @albyxhacc on tg" not in attribution:
+            raise ValueError("Tampering detected! Attribution is required.")
+
+    def load_offers(self):
+        if not os.path.exists(self.file_directory):
+            os.makedirs(self.file_directory)
+            print(f"Directory {self.file_directory} has been created.")
+
+        if os.path.exists(self.filepath):
+            try:
+                with open(self.filepath, "r") as file:
+                    content = file.read().strip()
+                    if not content:
+                        raise ValueError("The file is empty")
+                    self.offers = json.loads(content)
+                    print(f"Offers have been loaded from {self.filepath}.")
+            except (ValueError, Exception) as e:
+                print(f"Error reading the file: {e}. Creating a new file.")
+                self.offers = {}
+                self.save_offers()
+        else:
+            print(f"The file {self.filepath} does not exist. Creating a new file.")
+            self.offers = {}
+            self.save_offers()
+
+    def save_offers(self):
+        with open(self.filepath, "w") as file:
+            json.dump(self.offers, file, indent=4)
+        print(f"Offers saved to {self.filepath}.")
+
+    def extend_to_full_id(self, input_id, target_length=3):
+        if isinstance(input_id, int):
+            input_id = [input_id]
+        elif isinstance(input_id, str):
+            input_id = list(map(int, input_id.split(",")))
+        return input_id + [0] * (target_length - len(input_id))
+
+    def validate_brawler_ids(self, brawler_ids):
+        try:
+            ids = list(map(int, brawler_ids.split(",")))
+            for id in ids:
+                if id < 1 or id > 39:
+                    raise ValueError
+            return ids
+        except ValueError:
+            return None
+
+    def get_valid_brawler_ids(self):
+        while True:
+            brawler_id_input = input("Enter BrawlerID (valid IDs: 1-39, separate multiple IDs with commas): ")
+            brawler_ids = self.validate_brawler_ids(brawler_id_input)
+            if brawler_ids is not None:
+                return brawler_ids
+            print("Invalid BrawlerID(s)! Please enter IDs between 1 and 39.")
+
+    def add_offer(self):
+        print(f"The bot works ONLY  with version {self.target_version}.")
+        offer_id = input("Enter offer ID: ")
+        offer_title = input("Enter offer title: ")
+        cost = int(input("Enter cost: "))
+        old_cost = int(input("Enter old cost (or just 0): "))
+        multiplier = int(input("Enter multiplier: "))
+        bgr = input("Enter BGR: ")
+        brawler_id = self.get_valid_brawler_ids()
+        skin_id = input("Enter SkinID: ")
 
         offer_id = self.extend_to_full_id(offer_id)
         brawler_id = self.extend_to_full_id(brawler_id)
@@ -93,9 +176,8 @@ class ShopBot:
             "OfferTitle": offer_title,
             "Cost": cost,
             "OldCost": old_cost,
-            "Count": count,
-            "BGR": bgr,
             "Multiplier": multiplier,
+            "BGR": bgr,
             "BrawlerID": brawler_id,
             "SkinID": skin_id,
             "WhoBuyed": [],
@@ -114,9 +196,14 @@ class ShopBot:
             print("Bot will now close since your server doesn't use config.json.")
             return
 
-        version = input("Enter game version (e.g. v29): ")
-        if version != self.target_version:
-            print(f"Error: This bot works only with version {self.target_version}. Exiting...")
+        correct_version = input("Is your version v29? [y/n]: ").lower()
+        if correct_version == "y":
+            print("Okay! Continuing...")
+        elif correct_version == "n":
+            print("Sorry, but this bot is only for v29. Closing the bot..")
+            return
+        else:
+            print("Invalid response. Closing the bot..")
             return
 
         while True:
