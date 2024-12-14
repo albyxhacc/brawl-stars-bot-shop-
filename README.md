@@ -1,1 +1,2 @@
 **BRAWL STARS BOT SHOP FOR V29**
+What's new?
