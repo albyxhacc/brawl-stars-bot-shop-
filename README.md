@@ -17,3 +17,4 @@ a brain...
 (https://t.me/BrawlStarsArchives1/867)
 ## That's it
 if you give a 🌟 ill be happy :3
+(i don't even remember if i made it with gpt or not xddd)
